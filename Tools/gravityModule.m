@@ -37,7 +37,6 @@ if (size(setLeg.PMatrix,1)~=size(V,1))
 end
 
 % set data matrices
-
 Pot   = zeros(size(Lon));
 VecR  = zeros(size(Lon));
 VecT  = zeros(size(Lon));
@@ -86,7 +85,7 @@ for l = 1:length(lon)
     vecR =  sum(bsxfun(@times,setLeg.PMatrix,((cos((V(:,2))*lambda(1,l)).*V(:,3)...
                                              + sin((V(:,2))*lambda(1,l)).*V(:,4))...
                                              .*Sfac1.*(V(:,1)+1))),1);
-
+    
     vecT =  sum(bsxfun(@times,setLeg.DMatrix,((cos((V(:,2))*lambda(1,l)).*V(:,3)...
                                              + sin((V(:,2))*lambda(1,l)).*V(:,4))...
                                              .*Sfac1)),1);

@@ -104,6 +104,25 @@ test = GSHS(field,lam,th);
 % title('Gravity Map');
 % set(gca, 'YDir', 'normal');
 
+% Lat = (linspace(-90, 90, 180 * res + 1));
+% Lon = (linspace(0, 360, 360 * res + 1));
+V = data_matrix(:, 1:4);
+c00 = [0., 0., 1., 0.];
+V = vertcat(c00, V);
+Re = 470000;
+GM = 626290536121;
+r = Re + 10;
+SHbounds = [0 18];
+
+latLim = [-89.5 89.5 1];
+lonLim = [-180 180 1];
+lon = lonLim(1):lonLim(3):lonLim(2);
+lat = latLim(1):latLim(3):latLim(2);
+disp(lat)
+
+Lon = repmat(lon,length(lat),1);
+Lat = repmat(lat',1,length(lon));
+
 [data] = gravityModule(Lat,Lon,r,SHbounds,V,Re,GM);
 % input: Lat: latitude in degree [matrix]
 %        Lon: longitude in degree [marix]
@@ -124,3 +143,11 @@ test = GSHS(field,lam,th);
 % SHbounds =  [0 179]; % Truncation settings: lower limit, upper limit SH-coefficients used
 
 % [data] = model_SH_synthesis(lonLim,latLim,height,SHbounds,V,Model);
+gravity_acceleration = sqrt(data.vec.R.^2 + data.vec.T.^2 + data.vec.L.^2);
+
+figure;
+imagesc(lon, lat, data.vec.R);
+colorbar;
+xlabel('Longitude (°)');
+ylabel('Latitude (°)');
+title('Gravity Acceleration Map (m/s^2)');

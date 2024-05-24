@@ -17,7 +17,6 @@ function [setLeg] = getLegendre(SHbounds,Lat)
 
 nmin = SHbounds(1);
 nmax = SHbounds(2);
-
 CoLat = (90 - Lat(:,1))';
 axl = (nmax)*(nmax+1)/2+nmax+1 - ((nmin-1)*(nmin)/2+nmin);
 
