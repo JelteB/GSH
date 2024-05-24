@@ -1,0 +1,288 @@
+PDS_VERSION_ID               = "PDS3"
+FILE_NAME                    = "JGDWN_CER18D_SHB.DAT"
+
+RECORD_TYPE                  = FIXED_LENGTH
+RECORD_BYTES                 = 512
+FILE_RECORDS                 = 1018      
+^SHBDR_HEADER_TABLE          = ("JGDWN_CER18D_SHB.DAT",1)                   
+^SHBDR_NAMES_TABLE           = ("JGDWN_CER18D_SHB.DAT",2)                 
+^SHBDR_COEFFICIENTS_TABLE    = ("JGDWN_CER18D_SHB.DAT",8)                   
+^SHBDR_COVARIANCE_TABLE      = ("JGDWN_CER18D_SHB.DAT",14)                  
+
+SPACECRAFT_NAME              = "DAWN"   
+MISSION_PHASE_NAME           = {                                              
+                               "CERES SCIENCE SURVEY (CSS)",                  
+                               "CERES SCIENCE HAMO (CSH)",                    
+                               "CERES SCIENCE LAMO (CSL)" }  
+TARGET_NAME                  = "1 CERES" 
+INSTRUMENT_NAME              = "RADIO SCIENCE SUBSYSTEM"
+DATA_SET_ID                  = "DAWN-A-RSS-5-CEGR-V3.0"        
+OBSERVATION_TYPE             = "GRAVITY FIELD"
+PRODUCT_ID                   = "JGDWN_CER18D_SHB.DAT"
+PRODUCT_RELEASE_DATE         = 2018-05-08
+DESCRIPTION                  = "
+ This file contains the covariance and related data for the JPL Dawn
+ Ceres gravity soluttion CERES18D, a 18th degree and order spherical
+ harmonic model and covariance.
+
+Some details describing this model are:
+   The spherical harmonic coefficients are fully normalized.
+   The associated GM = 62.6290536121 km^3/s^2
+   The reference radius = 470.0 km
+   The Ceres-fixed reference frame prime meridian and pole 
+      location in IAU coordinates is given by 
+         Right ascension = 291.42763 degrees (estimated)
+         RA rate         =   0.0 degrees/cty (fixed)
+         Declination     =  66.76033 degrees (estimated)
+         Dec rate        =   0.0 degrees/cty (fixed)
+         Prime Meridian  = 170.309 degrees (estimated)
+         Rotation rate   = 952.1532635 degrees/day (estimated)
+   The pole location, W0 and spin rate are estimated jointly with the
+   gravity field by fixing the y-value of the Kait landmark to zero.
+   The uncertainties of the pole for this solution are
+         Right ascension = 0.0002 degrees
+         Declination     = 0.0002 degrees
+   Note ceres18d is similar to ceres18c version 2 of the gravity field
+   which has the corrected location of the kait crater. This is a 
+   rotation of -0.064074 deg about the z-axis versus the previous
+   version of the gravity field.
+
+ For a description of the solution, see the ascii pds file
+ for the CERES18D spherical harmonic gravity coefficients.
+
+ The error covariance of CERES18D is delivered in the Spherical
+ Harmonics Gravity Binary Data Record (SHGBDR) and is produced by the
+ Dawn Gravity Science Team at JPL."
+
+START_TIME                   = 2015-02-02T07:00:00.000
+STOP_TIME                    = 2016-09-02T15:00:00.000
+SPACECRAFT_CLOCK_START_COUNT = "1/0476132467.030"                             
+SPACECRAFT_CLOCK_STOP_COUNT  = "1/0526100468.004"  
+PRODUCT_CREATION_TIME        = 2018-05-08T00:00:00.000
+PRODUCER_FULL_NAME           = "ALEX S. KONOPLIV"
+PRODUCER_INSTITUTION_NAME    = "JET PROPULSION LABORATORY"
+PRODUCT_VERSION_TYPE         = "FINAL"
+PRODUCER_ID                  = "DAWN GRAVITY TEAM"
+SOFTWARE_NAME                = "SHBGRV.V1.0"
+
+/* Structure Objects */
+
+OBJECT                     = SHBDR_HEADER_TABLE
+  ROWS                       = 1
+  COLUMNS                    = 9
+  ROW_BYTES                  = 56
+  INTERCHANGE_FORMAT         = BINARY
+  DESCRIPTION                = "The SHBDR Header includes
+  descriptive information about the spherical harmonic
+  coefficients which follow in SHBDR_COEFFICIENTS_TABLE.
+  The header consists of a single record of nine data
+  columns requiring 56 bytes.  The Header is followed by
+  a pad of binary integer zeroes to ensure alignment
+  with RECORD_BYTES."
+
+  OBJECT                   = COLUMN
+    NAME                         = "REFERENCE RADIUS"
+    DATA_TYPE                    = PC_REAL
+    START_BYTE                   = 1
+    BYTES                        = 8
+    UNIT                         = "KILOMETER"
+    DESCRIPTION                  = "The assumed reference
+    radius of the spherical planet."
+  END_OBJECT               = COLUMN
+
+  OBJECT                   = COLUMN
+    NAME                         = "CONSTANT"
+    DATA_TYPE                    = PC_REAL
+    START_BYTE                   = 9
+    BYTES                        = 8
+    UNIT                         = "N/A"
+    DESCRIPTION                  = "For a gravity field model
+    the gravitational constant GM in kilometers cubed per seconds
+    squared for the planet.  For a topography model, set to 1"
+  END_OBJECT               = COLUMN
+
+  OBJECT                   = COLUMN
+    NAME                         = "UNCERTAINTY IN CONSTANT"
+    DATA_TYPE                    = PC_REAL
+    START_BYTE                   = 17
+    BYTES                        = 8
+    UNIT                         = "N/A"
+    DESCRIPTION                  = "For a gravity field model
+    the uncertainty in the gravitational constant GM in kilometers
+    cubed per seconds squared for the planet.  For a topography
+    model, set to 0."
+  END_OBJECT               = COLUMN
+
+  OBJECT                   = COLUMN
+    NAME                         = "DEGREE OF FIELD"
+    DATA_TYPE                    = MSB_INTEGER
+    START_BYTE                   = 25
+    BYTES                        = 4
+    UNIT                         = "N/A"
+    DESCRIPTION                  = "Degree of the model field."
+  END_OBJECT               = COLUMN
+
+  OBJECT                   = COLUMN
+    NAME                         = "ORDER OF FIELD"
+    DATA_TYPE                    = MSB_INTEGER
+    START_BYTE                   = 29
+    BYTES                        = 4
+    UNIT                         = "N/A"
+    DESCRIPTION                  = "Order of the model field."
+  END_OBJECT               = COLUMN
+
+  OBJECT                   = COLUMN
+    NAME                         = "NORMALIZATION STATE"
+    DATA_TYPE                    = MSB_INTEGER
+    START_BYTE                   = 33
+    BYTES                        = 4
+    UNIT                         = "N/A"
+    DESCRIPTION                  = "The normalization indicator.
+    For gravity field:
+        0   coefficients are unnormalized
+        1   coefficients are normalized
+        2   other."
+  END_OBJECT               = COLUMN
+
+  OBJECT                   = COLUMN
+    NAME                         = "NUMBER OF NAMES"
+    DATA_TYPE                    = MSB_INTEGER
+    START_BYTE                   = 37
+    BYTES                        = 4
+    UNIT                         = "N/A"
+    DESCRIPTION                  = "Number of valid names in
+    the SHBDR Names Table.  Also, the number of valid
+    coefficients in the SHBDR Coefficients Table."
+  END_OBJECT               = COLUMN
+
+  OBJECT                   = COLUMN
+    NAME                         = "REFERENCE LONGITUDE"
+    POSITIVE_LONGITUDE_DIRECTION = "EAST"
+    DATA_TYPE                    = PC_REAL
+    START_BYTE                   = 41
+    BYTES                        = 8
+    UNIT                         = "DEGREE"
+    DESCRIPTION                  = "The reference longitude for
+    the spherical harmonic expansion; normally 0."
+  END_OBJECT               = COLUMN
+
+  OBJECT                   = COLUMN
+    NAME                         = "REFERENCE LATITUDE"
+    DATA_TYPE                    = PC_REAL
+    START_BYTE                   = 49
+    BYTES                        = 8
+    UNIT                         = "DEGREE"
+    DESCRIPTION                  = "The reference latitude for
+    the spherical harmonic expansion; normally 0."
+  END_OBJECT               = COLUMN
+
+END_OBJECT           = SHBDR_HEADER_TABLE
+
+OBJECT               = SHBDR_NAMES_TABLE
+  ROWS                     = 358
+  COLUMNS                  = 1
+  ROW_BYTES                = 8
+  INTERCHANGE_FORMAT       = BINARY
+  DESCRIPTION              = "The SHBDR Names Table
+  contains names for the solution parameters (including
+  gravity field coefficients) which will follow in
+  SHBDR_COEFFICIENTS_TABLE.  The order of the names
+  in SHBDR_NAMES_TABLE corresponds identically to the
+  order of the parameters in SHBDR_COEFFICIENTS_TABLE.
+  Each coefficient  name is of the form  Cij  or  Sij
+  where  i  is the degree of the coefficient and  j  is
+  the order of the coefficient.  Both indices are three-
+  digit zero-filled right-justified ASCII character strings
+  (for example,  C010005  for the 10th degree 5th order C
+  coefficient, or  S002001  for the 2nd degree 1st order
+  S  coefficient).  The eighth byte in the table is an
+  ASCII blank used to ensure that the row length
+  is equal to RECORD_BYTES.  Names of other solution
+  parameters are limited to 8 ASCII characters; if less
+  than 8, they will be left-justified and padded with
+  ASCII blanks.  The Names Table itself will be padded
+  with ASCII blanks, if necessary, so that its length is
+  an integral multiple of RECORD_BYTES."
+
+  OBJECT                   = COLUMN
+    NAME                         = "PARAMETER NAME"
+    DATA_TYPE                    = CHARACTER
+    START_BYTE                   = 1
+    BYTES                        = 8
+    UNIT                         = "N/A"
+    DESCRIPTION                  = "The name of the
+    coefficient or other solution parameter, left-
+    justified and padded with ASCII blanks (if needed)
+    to 8 characters."
+  END_OBJECT               = COLUMN
+
+END_OBJECT           = SHBDR_NAMES_TABLE
+
+OBJECT               = SHBDR_COEFFICIENTS_TABLE
+  ROWS                     = 358
+  COLUMNS                  = 1
+  ROW_BYTES                = 8
+  INTERCHANGE_FORMAT       = BINARY
+  DESCRIPTION              = "The SHBDR Coefficients Table
+  contains the coefficients and other solution parameters
+  for the spherical harmonic model.  The order of the
+  coefficients in this table corresponds exactly to the
+  order of the coefficient and parameter names in
+  SHBDR_NAMES_TABLE.  The SHBDR Coefficients Table will be
+  padded with double precision DATA_TYPE zeroes so that
+  its total length is an integral multiple of RECORD_BYTES."
+
+  OBJECT                   = COLUMN
+    NAME                         = "COEFFICIENT VALUE"
+    DATA_TYPE                    = PC_REAL
+    START_BYTE                   = 1
+    BYTES                        = 8
+    UNIT                         = "N/A"
+    DESCRIPTION                  = "A coefficient Cij or
+    Sij or other solution parameter as specified in the
+    SHBDR Names Table."
+  END_OBJECT               = COLUMN
+
+END_OBJECT           = SHBDR_COEFFICIENTS_TABLE
+
+OBJECT               = SHBDR_COVARIANCE_TABLE
+  ROWS                     = 64261
+  COLUMNS                  = 1
+  ROW_BYTES                = 8
+  INTERCHANGE_FORMAT       = BINARY
+  DESCRIPTION              = "The SHBDR Covariance Table
+  contains the covariances for the spherical harmonic model
+  coefficients and other solution parameters.  The order of
+  the covariances in this table is defined as columnwise
+  vector storage of the upper triangular matrix formed by
+  the product of the SHBDR Names Table with its transpose.
+  For example, if the Names Table has four entries  A, B, 
+  C, and D,  then the covariances are given by the column 
+  vectors in the upper triangular matrix of
+  
+           | A | [ A B C D ] = | AA AB AC AD |
+           | B |               | BA BB BC BD |
+           | C |               | CA CB CC CD |
+           | D |               | DA DB DC DD |
+                                              
+  That is, the covariance table will list (in this order)
+  AA, AB, BB, AC, BC, CC, AD, BD, CD, and DD.
+  The SHBDR Covariance Table will be padded with double
+  precision DATA_TYPE zeroes so that its total length is
+  an integral multiple of RECORD_BYTES."
+
+  OBJECT                   = COLUMN
+    NAME                         = "COVARIANCE VALUE"
+    DATA_TYPE                    = PC_REAL
+    START_BYTE                   = 1
+    BYTES                        = 8
+    UNIT                         = "N/A"
+    DESCRIPTION                  = "The covariance value
+    for the coefficients and other solution parameters
+    specified by the product of SHBDR_NAMES_TABLE with
+    its transpose, after omitting redundant terms."
+  END_OBJECT               = COLUMN
+
+END_OBJECT           = SHBDR_COVARIANCE_TABLE
+
+END
