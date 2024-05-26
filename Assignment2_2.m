@@ -172,3 +172,15 @@ set(gca, 'YTickLabel', -90:45:90);
 set(gca, 'XMinorTick', 'on', 'XMinorGrid', 'off');
 set(gca, 'YMinorTick', 'on', 'YMinorGrid', 'off');
 set(gca, 'TickDir', 'out');
+
+% Save the geoid data to a MAT file
+save('Data/Geoid_Ceres.mat', 'geoid');
+
+% Save the shape data to a MAT file
+save('Data/Shape_Ceres.mat', 'Topography');
+
+% Save the gravity data to a MAT file
+save('Data/Gravity_Ceres.mat', 'gravity_acceleration');
+
+% Save the Bouguer gravity data to a MAT file
+save('Data/Bouguer_Gravity_Ceres.mat', 'BOUGUER');
