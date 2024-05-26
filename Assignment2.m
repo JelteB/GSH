@@ -6,7 +6,51 @@ HOME = pwd;
 addpath([HOME '/Data']);
 addpath([HOME '/Tools']);
 
-% TOPOGRAPHY
+% GEOID
+file = 'JGDWN_CER18D_GEOID_0018.IMG';
+res = 1;
+
+fid = fopen(file,'r');
+data = fread(fid,[360 * res 180],'double')';
+fclose(fid); 
+
+latLim = [-89.5 89.5 res];
+lonLim = [-179.5 179.5 res];
+latGrid = latLim(1):latLim(3):latLim(2);
+lonGrid = lonLim(1):lonLim(3):lonLim(2);
+
+data = [data(:, 181:end), data(:, 1:180)];
+
+a = 482e3;
+f = 0.074896;
+e2 = 2*f - f^2;
+[~, latMesh] = meshgrid(lonGrid, latGrid);
+phi = deg2rad(latMesh); % Convert latitude to radians
+great_normal = (a ./ sqrt(1 - e2 * sin(phi).^2));
+x_ellipsoid = great_normal .* cos(phi);
+y_ellipsoid = great_normal .* sin(phi) * (1 - e2);
+ellipsoid = sqrt(x_ellipsoid.^2 + y_ellipsoid.^2);
+
+geoid = ellipsoid + data;
+
+figure;
+imagesc(lonGrid, latGrid, geoid / 1e3);
+colorbar;
+xlabel('Longitude (°)');
+ylabel('Latitude (°)');
+title('Geoid of Ceres (km)');
+colormap(turbo); 
+set(gca, 'YDir', 'normal');
+
+set(gca, 'XTick', -180:45:180);
+set(gca, 'YTick', -90:45:90);
+set(gca, 'XTickLabel', -180:45:180);
+set(gca, 'YTickLabel', -90:45:90);
+set(gca, 'XMinorTick', 'on', 'XMinorGrid', 'off');
+set(gca, 'YMinorTick', 'on', 'YMinorGrid', 'off');
+set(gca, 'TickDir', 'out');
+
+% SHAPE
 file = 'CERES_SPC181019_0256.ICQ';
 res = 1;
 
@@ -26,18 +70,21 @@ lon = rad2deg(lon);
 lat = rad2deg(lat); 
 radius = sqrt(x.^2 + y.^2 + z.^2);
 
-latGrid = linspace(-90, 90, 180 * res); 
-lonGrid = linspace(-180, 180, 360 * res + 1); % Adjusted for -180 to 180 range
+latLim = [-89.5 89.5 res];
+lonLim = [-179.5 179.5 res];
+latGrid = latLim(1):latLim(3):latLim(2);
+lonGrid = lonLim(1):lonLim(3):lonLim(2);
+
 [lonMesh, latMesh] = meshgrid(lonGrid, latGrid);
 F = scatteredInterpolant(lon, lat, radius, 'natural', 'nearest');
-radiusGrid = F(lonMesh, latMesh);
+Topography = F(lonMesh, latMesh);
 
 figure;
-imagesc(lonGrid, latGrid, radiusGrid);
+imagesc(lonGrid, latGrid, Topography);
 colorbar;
 xlabel('Longitude (°)');
 ylabel('Latitude (°)');
-title('Topography of Ceres (km)');
+title('Shape of Ceres (km)');
 colormap(turbo); 
 set(gca, 'YDir', 'normal');
 
@@ -76,18 +123,17 @@ Height = Radius + 10;
 SHbounds = [0 header(4)];
 
 latLim = [-89.5 89.5 res];
-lonLim = [-180 180 res];
-lon = lonLim(1):lonLim(3):lonLim(2);
-lat = latLim(1):latLim(3):latLim(2);
-
-Lon_matrix = repmat(lon,length(lat),1);
-Lat_matrix = repmat(lat',1,length(lon));
+lonLim = [-179.5 179.5 res];
+lonGrid = lonLim(1):lonLim(3):lonLim(2);
+latGrid = latLim(1):latLim(3):latLim(2);
+Lon_matrix = repmat(lonGrid,length(latGrid),1);
+Lat_matrix = repmat(latGrid',1,length(lonGrid));
 
 [data] = gravityModule(Lat_matrix,Lon_matrix,Height,SHbounds,SHcoeff,Radius,GM);
 gravity_acceleration = sqrt(data.vec.R.^2 + data.vec.T.^2 + data.vec.L.^2);
 
 figure;
-imagesc(lon, lat, gravity_acceleration);
+imagesc(lonGrid, latGrid, gravity_acceleration);
 colorbar;
 xlabel('Longitude (°)');
 ylabel('Latitude (°)');
@@ -103,28 +149,26 @@ set(gca, 'XMinorTick', 'on', 'XMinorGrid', 'off');
 set(gca, 'YMinorTick', 'on', 'YMinorGrid', 'off');
 set(gca, 'TickDir', 'out');
 
-disp(size(gravity_acceleration));
-disp(size(radiusGrid));
+% BOUGUER GRAVITY
+G = 6.67430e-11;
+rho_B = 1800;
 
-% lmax = max(data_matrix(:, 1));
-% field = zeros(lmax + 1, 2*lmax+1);
-% mid_row = ceil((2*lmax+1)/ 2);
+heights = Topography .* 1e3 - geoid;
+BOUGUER = (2 * pi * G * rho_B) .* heights .*1e5;
 
-% for i = 1:size(data_matrix, 1)
-%     m_val = m(i);
-%     n_val = n(i);
-%     Cmn_val = Cmn(i);
-%     Smn_val = Smn(i);
+figure;
+imagesc(lonGrid, latGrid, BOUGUER);
+colorbar;
+xlabel('Longitude (°)');
+ylabel('Latitude (°)');
+title('Bouguer Gravity of Ceres (mGal)');
+colormap(turbo); 
+set(gca, 'YDir', 'normal');
 
-%     if n_val == 0
-%         field(m_val + 1, mid_row) = Cmn_val;
-%     else
-%         field(m_val + 1, n_val + mid_row) = Cmn_val;
-%         field(m_val + 1, - n_val + mid_row) = Smn_val;
-%     end
-
-% end
-
-% lam = [res/2:res:360-res/2]; % lam   [n x 1]   longitude [deg]
-% th = [res/2:res:180-res/2]; % th    [m x 1]   co-latitude [deg]      【90-lat】
-% test = GSHS(field,lam,th);
+set(gca, 'XTick', -180:45:180);
+set(gca, 'YTick', -90:45:90);
+set(gca, 'XTickLabel', -180:45:180);
+set(gca, 'YTickLabel', -90:45:90);
+set(gca, 'XMinorTick', 'on', 'XMinorGrid', 'off');
+set(gca, 'YMinorTick', 'on', 'YMinorGrid', 'off');
+set(gca, 'TickDir', 'out');
