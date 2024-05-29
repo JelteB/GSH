@@ -10,8 +10,8 @@ addpath([HOME '/Tools']);
 file = 'JGDWN_CER18D_GEOID_0018.IMG';
 res = 1;
 
-fid = fopen(file,'r');
-data = fread(fid,[360 * res 180],'double')';
+fid = fopen(file,'r','ieee-be');
+data = fread(fid,[360 180])';
 fclose(fid); 
 
 latLim = [-89.5 89.5 res];
@@ -25,7 +25,7 @@ a = 482e3;
 f = 0.074896;
 e2 = 2*f - f^2;
 [~, latMesh] = meshgrid(lonGrid, latGrid);
-phi = deg2rad(latMesh); % Convert latitude to radians
+phi = deg2rad(latMesh);
 great_normal = (a ./ sqrt(1 - e2 * sin(phi).^2));
 x_ellipsoid = great_normal .* cos(phi);
 y_ellipsoid = great_normal .* sin(phi) * (1 - e2);
