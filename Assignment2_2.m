@@ -10,16 +10,17 @@ addpath([HOME '/Tools']);
 file = 'JGDWN_CER18D_GEOID_0018.IMG';
 res = 1;
 
-fid = fopen(file,'r','ieee-be');
-data = fread(fid,[360 180])';
+fid = fopen(file,'r');
+data = fread(fid,[360 180], 'double');
 fclose(fid); 
+
+geoid_heights = transpose(data);
+geoid_heights = [geoid_heights(:, 181:end), geoid_heights(:, 1:180)];
 
 latLim = [-89.5 89.5 res];
 lonLim = [-179.5 179.5 res];
 latGrid = latLim(1):latLim(3):latLim(2);
 lonGrid = lonLim(1):lonLim(3):lonLim(2);
-
-data = [data(:, 181:end), data(:, 1:180)];
 
 a = 482e3;
 f = 0.074896;
@@ -31,10 +32,10 @@ x_ellipsoid = great_normal .* cos(phi);
 y_ellipsoid = great_normal .* sin(phi) * (1 - e2);
 ellipsoid = sqrt(x_ellipsoid.^2 + y_ellipsoid.^2);
 
-geoid = ellipsoid + data;
+geoid = ellipsoid + geoid_heights;
 
 figure;
-imagesc(lonGrid, latGrid, geoid / 1e3);
+imagesc(lonGrid, latGrid, geoid ./ 1e3);
 colorbar;
 xlabel('Longitude (°)');
 ylabel('Latitude (°)');
@@ -85,7 +86,7 @@ colorbar;
 xlabel('Longitude (°)');
 ylabel('Latitude (°)');
 title('Shape of Ceres (km)');
-colormap(turbo); 
+colormap(parula); 
 set(gca, 'YDir', 'normal');
 
 set(gca, 'XTick', -180:45:180);
@@ -116,10 +117,11 @@ Smn = data_matrix(:, 4);  % Coefficients Smn
 SHcoeff = data_matrix(:, 1:4);
 c00 = [0., 0., 1., 0.];
 SHcoeff = vertcat(c00, SHcoeff);
+SHcoeff(4, :) = [2., 0., 0., 0.]; 
 
 Radius = header(1) * 1e3;
 GM = header(2) * 1e9;
-Height = Radius + 10;
+Height = Radius + 0.;
 SHbounds = [0 header(4)];
 
 latLim = [-89.5 89.5 res];
@@ -130,7 +132,7 @@ Lon_matrix = repmat(lonGrid,length(latGrid),1);
 Lat_matrix = repmat(latGrid',1,length(lonGrid));
 
 [data] = gravityModule(Lat_matrix,Lon_matrix,Height,SHbounds,SHcoeff,Radius,GM);
-gravity_acceleration = sqrt(data.vec.R.^2 + data.vec.T.^2 + data.vec.L.^2);
+gravity_acceleration = data.vec.R;%sqrt(data.vec.R.^2 + data.vec.T.^2 + data.vec.L.^2);
 
 figure;
 imagesc(lonGrid, latGrid, gravity_acceleration);
@@ -154,14 +156,30 @@ G = 6.67430e-11;
 rho_B = 1800;
 
 heights = Topography .* 1e3 - geoid;
-BOUGUER = (2 * pi * G * rho_B) .* heights .*1e5;
+Bouguer_corr = (2 * pi * G * rho_B) .* heights;
+
+SHcoeff = data_matrix(:, 1:4);
+c00 = [0., 0., 0., 0.];
+SHcoeff = vertcat(c00, SHcoeff);
+SHcoeff(4, :) = [2., 0., 0., 0.]; 
+
+[data2] = gravityModule(Lat_matrix,Lon_matrix,Height,SHbounds,SHcoeff,Radius,GM);
+gravity_delta = data2.vec.R;%sqrt(data.vec.R.^2 + data.vec.T.^2 + data.vec.L.^2);
+
+% normal_g = GM ./ ((geoid) .^2);
+% equatorial_g = gravity_acceleration(90, :);
+% gravity_0 = mean(equatorial_g);
+% omega = 0.000192340387006239;
+% gravity_latitude = normal_g .* (1 - (3/2) .* omega^2 .* sind(latMesh).^2);
+
+Bouguer_anom = gravity_delta - Bouguer_corr;
 
 figure;
-imagesc(lonGrid, latGrid, BOUGUER);
+imagesc(lonGrid, latGrid, Bouguer_anom .* 1e5);
 colorbar;
 xlabel('Longitude (°)');
 ylabel('Latitude (°)');
-title('Bouguer Gravity of Ceres (mGal)');
+title('Bouguer Anomaly of Ceres (mGal)');
 colormap(turbo); 
 set(gca, 'YDir', 'normal');
 
@@ -183,4 +201,7 @@ save('Data/Shape_Ceres.mat', 'Topography');
 save('Data/Gravity_Ceres.mat', 'gravity_acceleration');
 
 % Save the Bouguer gravity data to a MAT file
-save('Data/Bouguer_Gravity_Ceres.mat', 'BOUGUER');
+save('Data/Bouguer_Anomaly_Ceres.mat', 'Bouguer_anom');
+
+% Save the Bouguer heights data to a MAT file
+save('Data/Bouguer_Heights_Ceres.mat', 'heights');
