@@ -32,10 +32,10 @@ x_ellipsoid = great_normal .* cos(phi);
 y_ellipsoid = great_normal .* sin(phi) * (1 - e2);
 ellipsoid = sqrt(x_ellipsoid.^2 + y_ellipsoid.^2);
 
-geoid = ellipsoid + geoid_heights;
+Geoid = ellipsoid + geoid_heights;
 
-figure;
-imagesc(lonGrid, latGrid, geoid ./ 1e3);
+figure('Position',[100 100 800 400]);
+imagesc(lonGrid, latGrid, Geoid ./ 1e3);
 colorbar;
 xlabel('Longitude (°)');
 ylabel('Latitude (°)');
@@ -78,14 +78,16 @@ lonGrid = lonLim(1):lonLim(3):lonLim(2);
 
 [lonMesh, latMesh] = meshgrid(lonGrid, latGrid);
 F = scatteredInterpolant(lon, lat, radius, 'natural', 'nearest');
-Topography = F(lonMesh, latMesh);
+Shape = F(lonMesh, latMesh);
 
-figure;
-imagesc(lonGrid, latGrid, Topography);
+Topography = Shape.*1e3 - Geoid;
+
+figure('Position',[100 100 800 400]);
+imagesc(lonGrid, latGrid, Topography./1e3);
 colorbar;
 xlabel('Longitude (°)');
 ylabel('Latitude (°)');
-title('Shape of Ceres (km)');
+title('Topography of Ceres (km)');
 colormap(parula); 
 set(gca, 'YDir', 'normal');
 
@@ -134,7 +136,7 @@ Lat_matrix = repmat(latGrid',1,length(lonGrid));
 [data] = gravityModule(Lat_matrix,Lon_matrix,Height,SHbounds,SHcoeff,Radius,GM);
 gravity_acceleration = sqrt(data.vec.X.^2 + data.vec.Y.^2 + data.vec.Z.^2);
 
-figure;
+figure('Position',[100 100 800 400]);
 imagesc(lonGrid, latGrid, gravity_acceleration);
 colorbar;
 xlabel('Longitude (°)');
@@ -155,19 +157,19 @@ set(gca, 'TickDir', 'out');
 G = 6.67430e-11;
 rho_B = 1250;
 
-heights = (Topography .* 1e3) - geoid;
-Bouguer_corr = (2 * pi * G * rho_B) .* heights;
+%heights = (Shape .* 1e3) - Geoid;
+Bouguer_corr = (2 * pi * G * rho_B) .* Topography;
 
-SHbounds2 = [1 header(4)];
-%SHcoeff(4, :) = [2., 0., 0., 0.]; 
+SHcoeff(1, :) = [0., 0., 0., 0.];
+SHcoeff(4, :) = [2., 0., 0., 0.]; 
 
-[data2] = gravityModule_full(Lat_matrix,Lon_matrix,geoid,SHbounds2,SHcoeff,Radius,GM);
+[data2] = gravityModule(Lat_matrix,Lon_matrix,Height,SHbounds,SHcoeff,Radius,GM);
 gravity_delta = sqrt(data2.vec.X.^2 + data2.vec.Y.^2 + data2.vec.Z.^2);
 
 Bouguer_anom = gravity_delta - Bouguer_corr;
 
 gt = 10;
-figure;
+figure('Position',[100 100 800 400]);
 imagesc(lonGrid, latGrid(1+gt:end-gt), Bouguer_anom(1+gt:end-gt , :).*1e5);
 colorbar;
 xlabel('Longitude (°)');
@@ -185,16 +187,16 @@ set(gca, 'YMinorTick', 'on', 'YMinorGrid', 'off');
 set(gca, 'TickDir', 'out');
 
 % Save the geoid data to a MAT file
-save('Data/Geoid_Ceres.mat', 'geoid');
+save('Data/Geoid_Ceres.mat', 'Geoid');
 
 % Save the shape data to a MAT file
-save('Data/Shape_Ceres.mat', 'Topography');
+save('Data/Shape_Ceres.mat', 'Shape');
+
+% Save the topography  data to a MAT file
+save('Data/STopo_Ceres.mat', 'Topography');
 
 % Save the gravity data to a MAT file
 save('Data/Gravity_Ceres.mat', 'gravity_acceleration');
 
 % Save the Bouguer gravity data to a MAT file
 save('Data/Bouguer_Anomaly_Ceres.mat', 'Bouguer_anom');
-
-% Save the Bouguer heights data to a MAT file
-save('Data/Bouguer_Heights_Ceres.mat', 'heights');
