@@ -50,7 +50,7 @@ for nlayer = 1:Model.number_of_layers
     
     % Costruct the coefficients for that particular layer
     [U,L,R] = import_layer_NEW(Model,nlayer);
-
+    disp(size(U));
     % costruct fix for depth error
     meanFix = max(max((U)));
     fixRe = Model.Re;

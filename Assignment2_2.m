@@ -193,10 +193,11 @@ save('Data/Geoid_Ceres.mat', 'Geoid');
 save('Data/Shape_Ceres.mat', 'Shape');
 
 % Save the topography  data to a MAT file
-save('Data/STopo_Ceres.mat', 'Topography');
+save('Data/Topo_Ceres.mat', 'Topography');
 
 % Save the gravity data to a MAT file
 save('Data/Gravity_Ceres.mat', 'gravity_acceleration');
+save('Data/Gravity_Delta_Ceres.mat', 'gravity_delta');
 
 % Save the Bouguer gravity data to a MAT file
 save('Data/Bouguer_Anomaly_Ceres.mat', 'Bouguer_anom');
