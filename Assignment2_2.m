@@ -119,7 +119,7 @@ Smn = data_matrix(:, 4);  % Coefficients Smn
 SHcoeff = data_matrix(:, 1:4);
 c00 = [0., 0., 1., 0.];
 SHcoeff = vertcat(c00, SHcoeff);
-%SHcoeff(4, :) = [2., 0., 0., 0.]; 
+SHcoeff(4, :) = [2., 0., 0., 0.]; 
 
 Radius = header(1) * 1e3;
 GM = header(2) * 1e9;
@@ -134,10 +134,11 @@ Lon_matrix = repmat(lonGrid,length(latGrid),1);
 Lat_matrix = repmat(latGrid',1,length(lonGrid));
 
 [data] = gravityModule(Lat_matrix,Lon_matrix,Height,SHbounds,SHcoeff,Radius,GM);
-gravity_acceleration = sqrt(data.vec.X.^2 + data.vec.Y.^2 + data.vec.Z.^2);
+gravity_acceleration = data.vec.R;%sqrt(data.vec.X.^2 + data.vec.Y.^2 + data.vec.Z.^2);
 
+gt = 10;
 figure('Position',[100 100 800 400]);
-imagesc(lonGrid, latGrid, gravity_acceleration);
+imagesc(lonGrid, latGrid(1+gt:end-gt), gravity_acceleration(1+gt:end-gt , :));
 colorbar;
 xlabel('Longitude (°)');
 ylabel('Latitude (°)');
@@ -160,11 +161,12 @@ rho_B = 1250;
 %heights = (Shape .* 1e3) - Geoid;
 Bouguer_corr = (2 * pi * G * rho_B) .* Topography;
 
-SHcoeff(1, :) = [0., 0., 0., 0.];
-SHcoeff(4, :) = [2., 0., 0., 0.]; 
+%SHcoeff(1, :) = [0., 0., 0., 0.];
+%SHcoeff(4, :) = [2., 0., 0., 0.]; 
+SHbounds2 = [2 18];
 
-[data2] = gravityModule(Lat_matrix,Lon_matrix,Height,SHbounds,SHcoeff,Radius,GM);
-gravity_delta = sqrt(data2.vec.X.^2 + data2.vec.Y.^2 + data2.vec.Z.^2);
+[data2] = gravityModule(Lat_matrix,Lon_matrix,Height,SHbounds2,SHcoeff,Radius,GM);
+gravity_delta = data2.vec.R;%sqrt(data2.vec.X.^2 + data2.vec.Y.^2 + data2.vec.Z.^2);
 
 Bouguer_anom = gravity_delta - Bouguer_corr;
 
