@@ -46,10 +46,10 @@ max_bin = 3;
 for nlayer = 1:Model.number_of_layers
     
     layer_name = ['l' num2str(nlayer)];
-    disp(['The layer number ' layer_name ' is starting'])
+    %disp(['The layer number ' layer_name ' is starting'])
     
     % Costruct the coefficients for that particular layer
-    [U,L,R] = import_layer_NEW(Model,nlayer);
+    [U,L,R] = import_layer(Model,nlayer);
 
     % costruct fix for depth error
     meanFix = max(max((U)));

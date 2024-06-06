@@ -11,8 +11,8 @@ addpath([HOME '/Tools']);
 % Model
 % Load previous saved model
 
-%model_name = 'Crust01_crust';
-%load(model_name);
+model_name = 'Ceres_model';
+load(model_name);
 
 % Construct new model
 inputModel    

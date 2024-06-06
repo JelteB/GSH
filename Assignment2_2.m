@@ -203,3 +203,6 @@ save('Data/Gravity_Delta_Ceres.mat', 'gravity_delta');
 
 % Save the Bouguer gravity data to a MAT file
 save('Data/Bouguer_Anomaly_Ceres.mat', 'Bouguer_anom');
+
+% Save SHcoeff
+save('Data/SHcoeffs_Ceres.mat', 'SHcoeff');

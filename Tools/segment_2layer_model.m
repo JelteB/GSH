@@ -61,7 +61,7 @@ Model.number_of_layers = 2;
 
 for numl = 1:length(top_layer)
 
-    disp(['Constructing layer number ' num2str(numl) '...'])
+    %disp(['Constructing layer number ' num2str(numl) '...'])
 
     ubound = top_layer(numl);
     lbound = bot_layer(numl);
