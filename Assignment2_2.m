@@ -156,7 +156,7 @@ set(gca, 'TickDir', 'out');
 
 % BOUGUER GRAVITY
 G = 6.67430e-11;
-rho_B = 1250;
+rho_B = 1215;
 
 %heights = (Shape .* 1e3) - Geoid;
 Bouguer_corr = (2 * pi * G * rho_B) .* Topography;
