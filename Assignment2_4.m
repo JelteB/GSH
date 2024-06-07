@@ -6,7 +6,13 @@ format long
 addpath([HOME '/Data']);
 addpath([HOME '/Tools']);
 
+% define parameters
 G = 6.67430e-11;
+mu_ceres = 6.262905361210000e+10;
+r_ceres = 470e3;
+height = r_ceres;
+gt = 0;
+scale_param = 20;
 
 latLim = [-89.5 89.5 1];
 lonLim = [-179.5 179.5 1];
@@ -15,64 +21,32 @@ latGrid = latLim(1):latLim(3):latLim(2);
 Lon_matrix = repmat(lonGrid,length(latGrid),1);
 Lat_matrix = repmat(latGrid',1,length(lonGrid));
 [num_rows, num_cols] = size(Lat_matrix);
+uniform_matrix = ones(size(Lat_matrix));
 
-[observations] = load("Bouguer_Heights_Ceres.mat");
-[observations_bouger] = load("Bouguer_Anomaly_Ceres.mat");
+% load data
+[topo_data] = load("Topo_Ceres.mat");
+[SH_data] = load("SHcoeffs_Ceres.mat");
 
-topo_data = observations.heights;
-BA_obs = observations_bouger.Bouguer_anom;
+% process data
+h_topo_raw = topo_data.Topography;
+h_topo = zeros(size(h_topo_raw));
+h_topo(:,end/2+1:end) = h_topo_raw(:,1:end/2);
+h_topo(:,1:end/2) = h_topo_raw(:,end/2+1:end);
 
-max_itr = 25;
-tol = 1e-9;
+SHcoeff = SH_data.SHcoeff;
+SHbounds = [2 18];
+[data] = gravityModule(Lat_matrix, Lon_matrix, height, SHbounds, SHcoeff, r_ceres, mu_ceres);
+g_obs = data.vec.R;
 
 % Initial guesses
-rho_c = 1200; % initial crust density in kg/m^3
-rho_m = 2400; % initial mantle density in kg/m^3
-h_c0 = 40e3; % initial reference crust thickness in meters
+rho_c = 1215; % initial crust density in kg/m^3
+rho_m = 2429; % initial mantle density in kg/m^3
+t_cr = 37.7e3; % initial reference crust thickness in meters
 
-% Flatten the data for optimization
-BA_obs_flat = BA_obs(:);
-topo_data_flat = topo_data(:);
+dr = (rho_c /  (rho_m - rho_c)) .* h_topo;
+t_total = t_cr + h_topo;
 
-% Perform optimization using least squares
-for iter = 1:max_itr
-    % Calculate the change in crustal thickness
-    delta_h_c = BA_obs_flat / (2 * pi * G * (rho_m - rho_c));
-    % Calculate the residuals
-    BA_model = 2 * pi * G * (rho_m - rho_c) * delta_h_c + 2 * pi * G * rho_c * topo_data_flat;
-    residuals = BA_obs_flat - BA_model;
-    
-    % Compute the design matrix (H)
-    H = 2 * pi * G * [ -delta_h_c + topo_data_flat, delta_h_c, -(rho_m - rho_c) * ones(length(BA_obs_flat), 1)];
-    
-    % Compute the parameter updates using the normal equations
-    params_update = (H' * H) \ (H' * residuals);
-    
-    % Update the parameters
-    rho_c = rho_c + params_update(1);
-    rho_m = rho_m + params_update(2);
-    h_c0 = h_c0 + params_update(3);
-    
-    % Compute the cost (sum of squared residuals)
-    cost = sum(residuals.^2);
-    
-    % Check for convergence
-    if sqrt(cost) < tol
-        break;
-    end
-    
-    % Display iteration details
-    fprintf('Iteration %d: Cost = %f, rho_c = %f, rho_m = %f, h_c0 = %f\n', ...
-        iter, cost, rho_c, rho_m, h_c0);
-end
-
-% Compute final crustal thickness map using optimized parameters
-delta_h_c_opt_flat = BA_obs_flat / (2 * pi * G * (rho_m - rho_c));
-h_c_opt_flat = h_c0 + delta_h_c_opt_flat;
-
-% Reshape the results back to the original 2D shape
-delta_h_c_opt = reshape(delta_h_c_opt_flat, num_rows, num_cols);
-h_c_opt = reshape(h_c_opt_flat, num_rows, num_cols);
+[t_total_centr] = Europe_centered(t_total);
 
 str_c = ['Crustal density: ', num2str(rho_c), ' [kg/m³]'];
 str_m = ['Mantle density: ', num2str(rho_m), ' [kg/m³]'];
@@ -80,12 +54,52 @@ str_m = ['Mantle density: ', num2str(rho_m), ' [kg/m³]'];
 disp(str_c);
 disp(str_m);
 
+% iteration parameters
+max_itr = 100;
+tol = 1e-5;
+t_boundary = - uniform_matrix .* t_cr + dr;
+res_mean_prev = uniform_matrix;
+
+for iter = 0:max_itr   
+
+    g_model = gravity_model(rho_c, rho_m, h_topo, t_boundary, r_ceres, mu_ceres);
+
+    % residual
+    residual_matrix = g_obs - g_model;
+    
+    res_max = max(residual_matrix, [], "all");    
+    str_mean = ["Max residual: ", num2str(res_max)];
+    str_iter = ["Iteration number: ", num2str(iter)];
+
+    disp(str_iter);
+    disp(str_mean);
+
+    % scaling
+    addition_matrix = 0.2 .* (residual_matrix .* 1e5);
+
+    % Update boundary matrix based on residual
+    for i = 1:size(residual_matrix, 1)
+        for j = 1:size(residual_matrix, 2)
+            % Only update if residual exceeds tolerance
+            if abs(residual_matrix(i, j)) > tol
+                t_boundary(i, j) = t_boundary(i, j) + addition_matrix(i, j);
+            end
+        end
+    end
+end
+
+t_total_final = - t_boundary + dr + h_topo;
+t_total_final_centr = Europe_centered(t_total_final);
+
+lonLim_centered = [-179.5 179.5 1];
+lonGrid_centered = lonLim_centered(1):lonLim_centered(3):lonLim_centered(2);
+
 figure;
-imagesc(lonGrid, latGrid, delta_h_c_opt./1e3);
+imagesc(lonGrid, latGrid, t_total_centr ./1e3);
 colorbar;
 xlabel('Longitude (°)');
 ylabel('Latitude (°)');
-title('Crustal Thickness Deviations (km)');
+title('Initial Crustal Thickness (km)');
 colormap(turbo); 
 set(gca, 'YDir', 'normal');
 set(gca, 'XTick', -180:45:180);
@@ -96,8 +110,9 @@ set(gca, 'XMinorTick', 'on', 'XMinorGrid', 'off');
 set(gca, 'YMinorTick', 'on', 'YMinorGrid', 'off');
 set(gca, 'TickDir', 'out');
 
-figure;
-imagesc(lonGrid, latGrid, h_c_opt./1e3);
+
+figure('Position',[100 100 800 400]);
+imagesc(lonGrid_centered, latGrid(1+gt:end-gt), t_total_final_centr(1+gt:end-gt,:) ./1e3);
 colorbar;
 xlabel('Longitude (°)');
 ylabel('Latitude (°)');
@@ -112,5 +127,34 @@ set(gca, 'XMinorTick', 'on', 'XMinorGrid', 'off');
 set(gca, 'YMinorTick', 'on', 'YMinorGrid', 'off');
 set(gca, 'TickDir', 'out');
 
+
 %% Define functions
+
+function g_model = gravity_model(rho_c, rho_m, h_top, t_b, R, mu)
+
+    % model definition
+    Model = struct();    
+    Model.number_of_layers = 2;
+    Model.name = 'Ceres_model';
+    Model.GM = mu;
+    Model.Re = R;
+    Model.geoid = 'none';
+    Model.nmax = 18;     
+    
+    latLim = [-89.5 89.5 1];
+    lonLim = [0.5 359.5 1];
+
+    % layer boundaries
+    boundary_matrix = (t_b);
+    t_bottom = -175e3;
+
+    % [V] = model_SH_analysis(Model);
+    V = segment_2layer_model(h_top, boundary_matrix, t_bottom, rho_c, rho_m, 20e3, Model);
+    SHbounds = [2 18];
+    height = R;
+    [data] = model_SH_synthesis(lonLim,latLim, 0.,SHbounds,V,Model);
+    g_model = data.vec.R;
+
+end
+
 
