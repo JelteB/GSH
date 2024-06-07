@@ -48,7 +48,7 @@ Model.nmax = 18;
 
 % Crust layer
 Crust_thickness = - 37.7e3;
-Crust_density = 1215;
+Crust_density = 0.5*1215;%1215;
 
 % Mantle layer
 Mantle_density = 2429;
@@ -111,6 +111,9 @@ set(gca, 'YTickLabel', -90:45:90);
 set(gca, 'XMinorTick', 'on', 'XMinorGrid', 'off');
 set(gca, 'YMinorTick', 'on', 'YMinorGrid', 'off');
 set(gca, 'TickDir', 'out');
+caxis_boundary = [2.423469247715436e+01, 4.892657201267425e+01];
+caxis(caxis_boundary); % Set color scale range for boundary
 
+stop
 % Save Tickness
 save('Data/Bouguer_Inversion_Thickness_Ceres.mat', 'Thickness_matrix');

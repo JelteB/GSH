@@ -170,9 +170,9 @@ gravity_delta = data2.vec.R;%sqrt(data2.vec.X.^2 + data2.vec.Y.^2 + data2.vec.Z.
 
 Bouguer_anom = gravity_delta - Bouguer_corr;
 
-gt = 10;
+gt = 0;
 figure('Position',[100 100 800 400]);
-imagesc(lonGrid, latGrid(1+gt:end-gt), Bouguer_anom(1+gt:end-gt , :).*1e5);
+imagesc(lonGrid, latGrid(1+gt:end-gt), gravity_delta(1+gt:end-gt , :).*1e5);
 colorbar;
 xlabel('Longitude (°)');
 ylabel('Latitude (°)');
