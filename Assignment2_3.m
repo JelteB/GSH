@@ -48,7 +48,7 @@ Model.nmax = 18;
 
 % Crust layer
 Crust_thickness = - 37.7e3;
-Crust_density = 0.5*1215;%1215;
+Crust_density = 1215;
 
 % Mantle layer
 Mantle_density = 2429;
@@ -61,8 +61,9 @@ Bottom_thickness = -175e3;
 save([HOME '/Data/' Model.name '.mat'],'Model')
 
 % % % ITERATION
-max_itr = 75;
+max_itr = 350;
 tolerance = 1e-5;
+best_value = 1;
 
 for iter = 0:max_itr
 
@@ -88,9 +89,14 @@ for iter = 0:max_itr
         end
     end
 
+    if abs(mean(residual_matrix, 'all')) < best_value
+        best_boundary_matrix = Boundary_matrix;
+        best_value = abs(mean(residual_matrix, 'all'));
+    end
+
 end
 
-Thickness_matrix = Topography - Boundary_matrix;
+Thickness_matrix = Topography - best_boundary_matrix;
 [Thickness_matrix_centered] = Europe_centered(Thickness_matrix);
 
 lonLim_centered = [-179.5 179.5 1];
@@ -111,9 +117,8 @@ set(gca, 'YTickLabel', -90:45:90);
 set(gca, 'XMinorTick', 'on', 'XMinorGrid', 'off');
 set(gca, 'YMinorTick', 'on', 'YMinorGrid', 'off');
 set(gca, 'TickDir', 'out');
-caxis_boundary = [2.423469247715436e+01, 4.892657201267425e+01];
+caxis_boundary = [2.507429118515038e+01, 4.735139342625794e+01];
 caxis(caxis_boundary); % Set color scale range for boundary
 
-stop
 % Save Tickness
-save('Data/Bouguer_Inversion_Thickness_Ceres.mat', 'Thickness_matrix');
+save('Data/Bouguer_Inversion_Thickness_Ceres.mat', 'Thickness_matrix_centered');
