@@ -35,14 +35,62 @@ Lon_matrix = repmat(lonGrid,length(latGrid),1);
 Lat_matrix = repmat(latGrid',1,length(lonGrid));
 Uniform_matrix = ones(size(Lat_matrix));
 
-Gaussian_noise = randn(size(Uniform_matrix));
-min_height = -5000;
-max_height = 10000;
-Gaussian_noise = (Gaussian_noise - min(Gaussian_noise(:))) / (max(Gaussian_noise(:)) - min(Gaussian_noise(:))) ...
-    * (max_height - min_height) + min_height;
-Topography = Gaussian_noise;
+function X = rands(sz,sig)
+        % BASE CASE
+        if nargin == 0
+            X = rand;
+            return
+        end
+        % PARSE SIZE OF ARRAY
+        if any(sz ~= fix(sz))
+            error('Size inputs must be integers');
+        end
+        if numel(sz) == 1
+            sz = sz*[1 1];
+        end
+        % DEFAULT GAUSSIAN WIDTH (pixels)
+        if nargin == 1
+            sig = ceil(0.1*max(sz));
+        end
+        % GENERATE RANDOM NUMBERS
+        X = rand(sz);
+        % CALCULATE GAUSSIAN KERNEL 
+        K = gkern(sz,sig);
+        % SMOOTH RANDOM NUMBERS WITH FFT
+        X = real(ifftn(fftn(X) .* fftn(K,sz)));
+        % SCALE X
+        X = X - min(X(:));
+        X = X / max(X(:));
+    end
+    function K = gkern(sz,sigma)
+    % GKERN     Calculates Gaussian kernel of size "sz" with width "sig"
+        % CALCULATE NUMBER OF DIMENSIONS
+        N = numel(sz);
+        % CALCULATE GRID CENTER
+        cidx = ceil(sz / 2);
+        
+        % CALCULATE ND GRID
+        inds = cell(1, N);
+        for i = 1 : N
+            inds{i} = 1:sz(i);
+        end
+        [grid{1:N}] = ndgrid(inds{:});
+        % CALCULATE RADIAL DISTANCE 
+        % SQUARED FROM CENTER
+        RSQ = 0;
+        for i = 1 : N
+            RSQ = RSQ + (grid{i} - cidx(i)).^2;
+        end
+        % CALCULATE GAUSSIAN KERNEL
+        K = exp(- RSQ / (2*sigma^2)); 
+        K = K / sum(K(:));
+    end
 
-Boundary_matrix = synthetic_crust_thickness .* Uniform_matrix + 2 .* - Topography;
+Smooth_noise = rands([ 180 360 ], 2);
+Topography = 10e3 .* (Smooth_noise - mean(Smooth_noise));
+
+Smooth_noise2 = rands([ 180 360 ], 2);
+Boundary_matrix = synthetic_crust_thickness .* Uniform_matrix + 1e3 .* (Smooth_noise2 - mean(Smooth_noise2));
 
 % Compute synthetic gravity data using forward model
 V_Model_synthetic = segment_2layer_model(Topography, Boundary_matrix, -150e3, ...
@@ -52,16 +100,14 @@ synthetic_gravity_matrix = data_synthetic.vec.R;
 
 % Initialize the inversion with a different boundary matrix
 initial_guess_thickness = -40e3;
-Gaussian_noise = randn(size(Uniform_matrix));
-min_height = -10000;
-max_height = 10000; 
-Gaussian_noise = (Gaussian_noise - min(Gaussian_noise(:))) / (max(Gaussian_noise(:)) - min(Gaussian_noise(:))) ...
-    * (max_height - min_height) + min_height;
-Boundary_matrix_inverted = initial_guess_thickness .* Uniform_matrix + Gaussian_noise;
+Smooth_noise3 = rands([ 180 360 ], 2);
+Boundary_matrix_inverted = initial_guess_thickness .* Uniform_matrix + 4e3 .* (Smooth_noise3 - mean(Smooth_noise3));
 
 % % % ITERATION
-max_itr = 50;
+max_itr = 150;
 tolerance = 1e-5;
+best_value = 1;
+
 for iter = 0:max_itr
     % Update model
     [V_Model] = segment_2layer_model(Topography, Boundary_matrix_inverted, -150e3, ...
@@ -87,25 +133,22 @@ for iter = 0:max_itr
         end
     end
 
-    % Check for convergence
-    max_residual = max(max(abs(residual_matrix)));
-    disp(['Iteration: ', num2str(iter), ', Max Residual: ', num2str(max_residual)]);
-    
-    if max_residual < tolerance
-        disp(['Converged at iteration: ', num2str(iter)]);
-        break;
+    if abs(mean(residual_matrix, 'all')) < best_value
+        best_boundary_matrix = Boundary_matrix_inverted;
+        best_value = abs(mean(residual_matrix, 'all'));
+        best_iter = iter;
+        disp(['Best iteration: ' num2str(iter)])
     end
+
 end
 
-
-
 Thickness_matrix = Topography - Boundary_matrix;
-Thickness_matrix_inv = Topography - Boundary_matrix_inverted;
+Thickness_matrix_inv = Topography - best_boundary_matrix;
 
 % Evaluate results
 disp(['True Thickness mean: ', num2str(mean(Thickness_matrix(:)))]);
 disp(['Inverted  Thickness Mean: ', num2str(mean(Thickness_matrix_inv(:)))]);
-disp(['Final Residual Norm: ', num2str(norm(residual_matrix))]);
+disp(['Best Residual: ', num2str(best_value)]);
 
 % Plotting results
 max_boundary = max(max(Thickness_matrix./1e3));

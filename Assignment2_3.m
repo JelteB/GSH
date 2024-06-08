@@ -61,7 +61,7 @@ Bottom_thickness = -175e3;
 save([HOME '/Data/' Model.name '.mat'],'Model')
 
 % % % ITERATION
-max_itr = 350;
+max_itr = 250;
 tolerance = 1e-5;
 best_value = 1;
 
@@ -89,9 +89,11 @@ for iter = 0:max_itr
         end
     end
 
-    if abs(mean(residual_matrix, 'all')) < best_value
+    if abs(median(residual_matrix, 'all')) < best_value
         best_boundary_matrix = Boundary_matrix;
-        best_value = abs(mean(residual_matrix, 'all'));
+        best_value = abs(median(residual_matrix, 'all'));
+        best_iter = iter;
+        disp(['Best iteration: ' num2str(iter)])
     end
 
 end
