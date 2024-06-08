@@ -136,7 +136,7 @@ imagesc(lonGrid_centered, latGrid(1+gt:end-gt), t_total_centr(1+gt:end-gt,:) ./1
 colorbar;
 xlabel('Longitude (°)');
 ylabel('Latitude (°)');
-title('Crustal Thickness (km)');
+title('Initial Crustal Thickness (km)');
 colormap(turbo); 
 set(gca, 'YDir', 'normal');
 set(gca, 'XTick', -180:45:180);

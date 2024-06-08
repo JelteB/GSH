@@ -44,7 +44,7 @@ rho_m = 2429; % initial mantle density in kg/m^3
 t_cr = 37.7e3; % initial reference crust thickness in meters
 
 dr = (rho_c /  (rho_m - rho_c)) .* h_topo;
-t_total = t_cr + h_topo;
+t_total = t_cr + h_topo + dr;
 
 [t_total_centr] = Europe_centered(t_total);
 
@@ -57,7 +57,7 @@ disp(str_m);
 % iteration parameters
 max_itr = 100;
 tol = 1e-5;
-t_boundary = - uniform_matrix .* t_cr + dr;
+t_boundary = - uniform_matrix .* t_cr - dr;
 res_mean_prev = uniform_matrix;
 
 for iter = 0:max_itr   
@@ -88,14 +88,14 @@ for iter = 0:max_itr
     end
 end
 
-t_total_final = - t_boundary + dr + h_topo;
+t_total_final = - t_boundary + h_topo;
 t_total_final_centr = Europe_centered(t_total_final);
 
 lonLim_centered = [-179.5 179.5 1];
 lonGrid_centered = lonLim_centered(1):lonLim_centered(3):lonLim_centered(2);
 
-figure;
-imagesc(lonGrid, latGrid, t_total_centr ./1e3);
+figure('Position',[100 100 800 400]);
+imagesc(lonGrid_centered, latGrid(1+gt:end-gt), t_total_centr(1+gt:end-gt,:) ./1e3);
 colorbar;
 xlabel('Longitude (°)');
 ylabel('Latitude (°)');
@@ -109,7 +109,6 @@ set(gca, 'YTickLabel', -90:45:90);
 set(gca, 'XMinorTick', 'on', 'XMinorGrid', 'off');
 set(gca, 'YMinorTick', 'on', 'YMinorGrid', 'off');
 set(gca, 'TickDir', 'out');
-
 
 figure('Position',[100 100 800 400]);
 imagesc(lonGrid_centered, latGrid(1+gt:end-gt), t_total_final_centr(1+gt:end-gt,:) ./1e3);
