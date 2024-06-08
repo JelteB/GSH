@@ -163,6 +163,10 @@ set(gca, 'XMinorTick', 'on', 'XMinorGrid', 'off');
 set(gca, 'YMinorTick', 'on', 'YMinorGrid', 'off');
 set(gca, 'TickDir', 'out');
 
+%% save thicknesses
+save('Data/airy_flex_thicknesses_refined.mat', 't_total_final_centr');
+save('Data/airy_flex_thicknesses_initial.mat', 't_total_centr');
+
 
 %% Define functions
 
@@ -201,4 +205,3 @@ function phi_n = flexural_response(n, g, E, T_e, sigma, R, rho_c, rho_m)
     phi_n = (1 + (D ./ (g .* (rho_m - rho_c))) .* (2 .* (n + 1) ./ (2*R)).^4).^(-1);
 
 end
-

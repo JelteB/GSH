@@ -126,6 +126,10 @@ set(gca, 'XMinorTick', 'on', 'XMinorGrid', 'off');
 set(gca, 'YMinorTick', 'on', 'YMinorGrid', 'off');
 set(gca, 'TickDir', 'out');
 
+% save data
+save('Data/airy_thicknesses_refined.mat', 't_total_final_centr');
+save('Data/airy_thicknesses_initial.mat', 't_total_centr');
+
 
 %% Define functions
 
@@ -155,5 +159,3 @@ function g_model = gravity_model(rho_c, rho_m, h_top, t_b, R, mu)
     g_model = data.vec.R;
 
 end
-
-
