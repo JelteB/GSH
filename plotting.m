@@ -111,9 +111,6 @@ function dr = root_airy(rho_c, rho_m, dh)
 
 end
 
-
-stop
-
 % Imports
 m1_data = load("Bouguer_Inversion_Thickness_Ceres.mat");
 m1 = m1_data.Thickness_matrix_centered;
