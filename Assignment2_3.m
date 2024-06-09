@@ -89,10 +89,9 @@ for iter = 0:max_itr
         end
     end
 
-    if abs(mean(residual_matrix, 'all')) < best_value
+    if abs(median(residual_matrix, 'all')) < best_value
         best_boundary_matrix = Boundary_matrix;
-        best_SH_coeff = V;
-        best_value = abs(mean(residual_matrix, 'all'));
+        best_value = abs(median(residual_matrix, 'all'));
         best_iter = iter;
         disp(['Best iteration: ' num2str(iter)])
     end
@@ -120,11 +119,8 @@ set(gca, 'YTickLabel', -90:45:90);
 set(gca, 'XMinorTick', 'on', 'XMinorGrid', 'off');
 set(gca, 'YMinorTick', 'on', 'YMinorGrid', 'off');
 set(gca, 'TickDir', 'out');
-% caxis_boundary = [2.507429118515038e+01, 4.735139342625794e+01];
-% caxis(caxis_boundary); % Set color scale range for boundary
-caxis_boundary = [25, 45];
+caxis_boundary = [2.507429118515038e+01, 4.735139342625794e+01];
 caxis(caxis_boundary); % Set color scale range for boundary
 
 % Save Tickness
 save('Data/Bouguer_Inversion_Thickness_Ceres.mat', 'Thickness_matrix_centered');
-save('Data/M1_SH.mat', 'best_SH_coeff');
