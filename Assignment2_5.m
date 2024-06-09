@@ -18,6 +18,13 @@ E_cr = 5e9;
 T_e_cr = 2.75e3;
 g_avg = 0.27;  % m/s²
 
+Model = struct();    
+Model.number_of_layers = 2;
+Model.name = 'Ceres_model';
+Model.GM = mu_ceres;
+Model.Re = r_ceres;
+Model.geoid = 'none';
+Model.nmax = 18; 
 
 latLim = [-89.5 89.5 1];
 lonLim = [-179.5 179.5 1];
@@ -64,7 +71,7 @@ t_cr = 37.7e3; % initial reference crust thickness in meters
 dr = (rho_c /  (rho_m - rho_c)) .* h_topo;
 
 % perform transformation
-cs = GSHA(dr, 179);
+cs = GSHA(dr, 18);
 sc = cs2sc(cs);
 
 n_sh = 1:size(sc,1);
@@ -77,8 +84,7 @@ for m = 1:size(sc,2)
     sc_flex(:,m) = sc(:,m).*phi';
 end
 
-dr_flex = GSHS(sc_flex,lonGrid,90-latGrid,179);
-
+dr_flex = GSHS(sc_flex,lonGrid,90-latGrid,18);
 
 t_total = t_cr + h_topo + dr_flex;
 
@@ -93,8 +99,13 @@ disp(str_m);
 % iteration parameters
 max_itr = 100;
 tol = 1e-5;
-t_boundary = - uniform_matrix .* t_cr - dr;
+t_boundary = - uniform_matrix .* t_cr - dr_flex; % CHANGED THIS TO FLEX, was: - uniform_matrix .* t_cr - dr;
 res_mean_prev = uniform_matrix;
+
+% save intial data
+t_boundary_flex = - uniform_matrix .* t_cr - dr_flex;
+V_initial = segment_2layer_model(h_topo, t_boundary_flex, -175e3, rho_c, rho_m, 20e3, Model);
+save('Data/M3_SH_initial.mat', 'V_initial');
 
 for iter = 0:max_itr   
 
@@ -167,6 +178,8 @@ set(gca, 'TickDir', 'out');
 save('Data/airy_flex_thicknesses_refined.mat', 't_total_final_centr');
 save('Data/airy_flex_thicknesses_initial.mat', 't_total_centr');
 
+V_final = segment_2layer_model(h_topo, t_boundary, -175e3, rho_c, rho_m, 20e3, Model);
+save('Data/M3_SH_final.mat', 'V_final');
 
 %% Define functions
 

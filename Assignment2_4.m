@@ -14,6 +14,14 @@ height = r_ceres;
 gt = 0;
 scale_param = 20;
 
+Model = struct();    
+Model.number_of_layers = 2;
+Model.name = 'Ceres_model';
+Model.GM = mu_ceres;
+Model.Re = r_ceres;
+Model.geoid = 'none';
+Model.nmax = 18; 
+
 latLim = [-89.5 89.5 1];
 lonLim = [-179.5 179.5 1];
 lonGrid = lonLim(1):lonLim(3):lonLim(2);
@@ -59,6 +67,10 @@ max_itr = 100;
 tol = 1e-5;
 t_boundary = - uniform_matrix .* t_cr - dr;
 res_mean_prev = uniform_matrix;
+
+% save intial data
+V_initial = segment_2layer_model(h_topo, t_boundary, -175e3, rho_c, rho_m, 20e3, Model);
+save('Data/M2_SH_initial.mat', 'V_initial');
 
 for iter = 0:max_itr   
 
@@ -109,6 +121,8 @@ set(gca, 'YTickLabel', -90:45:90);
 set(gca, 'XMinorTick', 'on', 'XMinorGrid', 'off');
 set(gca, 'YMinorTick', 'on', 'YMinorGrid', 'off');
 set(gca, 'TickDir', 'out');
+caxis_boundary = [25, 45];
+caxis(caxis_boundary); % Set color scale range for boundary
 
 figure('Position',[100 100 800 400]);
 imagesc(lonGrid_centered, latGrid(1+gt:end-gt), t_total_final_centr(1+gt:end-gt,:) ./1e3);
@@ -125,11 +139,16 @@ set(gca, 'YTickLabel', -90:45:90);
 set(gca, 'XMinorTick', 'on', 'XMinorGrid', 'off');
 set(gca, 'YMinorTick', 'on', 'YMinorGrid', 'off');
 set(gca, 'TickDir', 'out');
+caxis_boundary = [25, 45];
+caxis(caxis_boundary); % Set color scale range for boundary
+
 
 % save data
 save('Data/airy_thicknesses_refined.mat', 't_total_final_centr');
 save('Data/airy_thicknesses_initial.mat', 't_total_centr');
 
+V_final = segment_2layer_model(h_topo, t_boundary, -175e3, rho_c, rho_m, 20e3, Model);
+save('Data/M2_SH_final.mat', 'V_final');
 
 %% Define functions
 
