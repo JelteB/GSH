@@ -18,7 +18,6 @@ E_cr = 5e9;
 T_e_cr = 2.75e3;
 g_avg = 0.27;  
 
-
 latLim = [-89.5 89.5 1];
 lonLim = [-179.5 179.5 1];
 lonGrid = lonLim(1):lonLim(3):lonLim(2);
