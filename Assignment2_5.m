@@ -16,7 +16,7 @@ scale_param = 20;
 sigma_cr = 0.5;
 E_cr = 5e9;
 T_e_cr = 2.75e3;
-g_avg = 0.27;  % m/s²
+g_avg = 0.27;  
 
 
 latLim = [-89.5 89.5 1];
@@ -61,7 +61,7 @@ rho_m = 2429; % initial mantle density in kg/m^3
 t_cr = 37.7e3; % initial reference crust thickness in meters
 
 % Airy isostasy
-dr = (rho_c /  (rho_m - rho_c)) .* h_topo;
+dr = root_airy(rho_c, rho_m, h_topo);
 
 % perform transformation
 cs = GSHA(dr, 179);
@@ -169,6 +169,12 @@ save('Data/airy_flex_thicknesses_initial.mat', 't_total_centr');
 
 
 %% Define functions
+
+function dr = root_airy(rho_c, rho_m, dh)
+
+    dr = (rho_c /  (rho_m - rho_c)) .* dh;
+
+end
 
 function g_model = gravity_model(rho_c, rho_m, h_top, t_b, R, mu)
 

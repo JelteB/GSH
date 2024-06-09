@@ -43,7 +43,7 @@ rho_c = 1215; % initial crust density in kg/m^3
 rho_m = 2429; % initial mantle density in kg/m^3
 t_cr = 37.7e3; % initial reference crust thickness in meters
 
-dr = (rho_c /  (rho_m - rho_c)) .* h_topo;
+dr = root_airy(rho_c, rho_m, h_topo);
 t_total = t_cr + h_topo + dr;
 
 [t_total_centr] = Europe_centered(t_total);
@@ -57,7 +57,9 @@ disp(str_m);
 % iteration parameters
 max_itr = 100;
 tol = 1e-5;
-t_boundary = - uniform_matrix .* t_cr - dr;
+best_value = 1;
+
+t_boundary = - uniform_matrix .* t_cr - dr + h_topo;
 res_mean_prev = uniform_matrix;
 
 for iter = 0:max_itr   
@@ -67,8 +69,8 @@ for iter = 0:max_itr
     % residual
     residual_matrix = g_obs - g_model;
     
-    res_max = max(residual_matrix, [], "all");    
-    str_mean = ["Max residual: ", num2str(res_max)];
+    res_med = abs(median(residual_matrix, 'all'));    
+    str_mean = ["Residual Absolute Median: ", num2str(res_med)];
     str_iter = ["Iteration number: ", num2str(iter)];
 
     disp(str_iter);
@@ -86,9 +88,18 @@ for iter = 0:max_itr
             end
         end
     end
+
+    if abs(median(residual_matrix, 'all')) < best_value
+        t_boundary_best = t_boundary;
+        best_value = abs(median(residual_matrix, 'all'));
+        best_iter = iter;
+        disp(['Best iteration: ' num2str(iter)])
+    end
+
 end
 
-t_total_final = - t_boundary + h_topo;
+
+t_total_final = - t_boundary_best + h_topo;
 t_total_final_centr = Europe_centered(t_total_final);
 
 lonLim_centered = [-179.5 179.5 1];
@@ -132,6 +143,12 @@ save('Data/airy_thicknesses_initial.mat', 't_total_centr');
 
 
 %% Define functions
+
+function dr = root_airy(rho_c, rho_m, dh)
+
+    dr = (rho_c /  (rho_m - rho_c)) .* dh;
+
+end
 
 function g_model = gravity_model(rho_c, rho_m, h_top, t_b, R, mu)
 
